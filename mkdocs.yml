@@ -1,6 +1,6 @@
 site_name: "Iron Bank Training"
 site_description: "12-Month Cloud Security & AppSec Mastery Plan"
-site_url: ""
+site_url: "https://krunalpatel1107.github.io/Project-Ironbank/"
 
 theme:
   name: material
