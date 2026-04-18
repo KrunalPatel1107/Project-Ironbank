@@ -1,0 +1,464 @@
+/* ============================================================
+   Iron Bank Training — Custom Styles
+   ============================================================ */
+
+/* Slightly bigger code blocks */
+.md-typeset pre > code {
+  font-size: 0.82rem;
+  line-height: 1.75;
+}
+
+/* Cost admonition style */
+.md-typeset .admonition.cost,
+.md-typeset details.cost {
+  border-color: #fbbf24;
+}
+.md-typeset .cost > .admonition-title,
+.md-typeset .cost > summary {
+  background-color: rgba(251, 191, 36, 0.1);
+}
+.md-typeset .cost > .admonition-title::before,
+.md-typeset .cost > summary::before {
+  background-color: #fbbf24;
+  -webkit-mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 15h2c0 1.08 1.37 2 3 2s3-.92 3-2c0-1.1-1.04-1.5-3.24-2.03C9.64 12.44 7 11.78 7 9c0-1.79 1.47-3.31 3.5-3.82V3h3v2.18C15.53 5.69 17 7.21 17 9h-2c0-1.08-1.37-2-3-2s-3 .92-3 2c0 1.1 1.04 1.5 3.24 2.03C14.36 11.56 17 12.22 17 15c0 1.79-1.47 3.31-3.5 3.82V21h-3v-2.18C8.47 18.31 7 16.79 7 15z"/></svg>');
+  mask-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 15h2c0 1.08 1.37 2 3 2s3-.92 3-2c0-1.1-1.04-1.5-3.24-2.03C9.64 12.44 7 11.78 7 9c0-1.79 1.47-3.31 3.5-3.82V3h3v2.18C15.53 5.69 17 7.21 17 9h-2c0-1.08-1.37-2-3-2s-3 .92-3 2c0 1.1 1.04 1.5 3.24 2.03C14.36 11.56 17 12.22 17 15c0 1.79-1.47 3.31-3.5 3.82V21h-3v-2.18C8.47 18.31 7 16.79 7 15z"/></svg>');
+}
+
+
+/* ============================================================
+   HOME PAGE — JOURNEY INFOGRAPHIC
+   ============================================================ */
+
+.ib-journey {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin: 1.5rem 0 2rem;
+}
+
+.ib-journey-arrow {
+  font-size: 1.6rem;
+  color: rgba(255, 255, 255, 0.2);
+  align-self: center;
+  flex-shrink: 0;
+  padding: 0 0.25rem;
+}
+
+.ib-journey-phase {
+  flex: 1;
+  min-width: 220px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Phase header bars */
+.ib-journey-phase-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.85rem 1rem;
+}
+
+.ib-journey-phase-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.ib-journey-phase-title {
+  font-weight: 700;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  color: #fff;
+}
+
+.ib-journey-phase-sub {
+  font-size: 0.72rem;
+  opacity: 0.7;
+  color: #fff;
+  margin-top: 0.1rem;
+}
+
+/* Phase accent colours */
+.ib-journey-phase--1 .ib-journey-phase-header { background: linear-gradient(135deg, #2e7d32, #388e3c); }
+.ib-journey-phase--2 .ib-journey-phase-header { background: linear-gradient(135deg, #1565c0, #1976d2); }
+.ib-journey-phase--3 .ib-journey-phase-header { background: linear-gradient(135deg, #6a1b9a, #7b1fa2); }
+.ib-journey-phase--4 .ib-journey-phase-header { background: linear-gradient(135deg, #e65100, #f57c00); }
+
+/* Month rows inside each phase */
+.ib-journey-months {
+  background: var(--md-code-bg-color);
+  padding: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ib-journey-month {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0.4rem;
+  padding: 0.55rem 0.75rem;
+  border-left: 3px solid rgba(255, 255, 255, 0.1);
+}
+
+.ib-journey-phase--1 .ib-journey-month { border-left-color: #43a047; }
+.ib-journey-phase--2 .ib-journey-month { border-left-color: #1e88e5; }
+.ib-journey-phase--3 .ib-journey-month { border-left-color: #8e24aa; }
+.ib-journey-phase--4 .ib-journey-month { border-left-color: #fb8c00; }
+
+.ib-journey-month-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.5;
+  margin-bottom: 0.2rem;
+  color: var(--md-default-fg-color);
+}
+
+.ib-journey-month-topic {
+  font-size: 0.78rem;
+  color: var(--md-default-fg-color);
+  line-height: 1.4;
+  margin-bottom: 0.2rem;
+}
+
+.ib-journey-month-build {
+  font-size: 0.73rem;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.ib-journey-month-cert {
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: #ffd54f;
+}
+
+/* Responsive: stack on small screens */
+@media screen and (max-width: 900px) {
+  .ib-journey {
+    flex-direction: column;
+  }
+  .ib-journey-arrow {
+    transform: rotate(90deg);
+    align-self: center;
+  }
+  .ib-journey-phase {
+    min-width: unset;
+    width: 100%;
+  }
+}
+
+
+/* ============================================================
+   HOME PAGE — HERO SECTION
+   ============================================================ */
+
+.ib-hero {
+  text-align: center;
+  padding: 3.5rem 2rem 3rem;
+  background: linear-gradient(
+    135deg,
+    rgba(63, 81, 181, 0.18) 0%,
+    rgba(0, 188, 212, 0.12) 50%,
+    rgba(63, 81, 181, 0.08) 100%
+  );
+  border-radius: 1rem;
+  margin-bottom: 2.5rem;
+  border: 1px solid rgba(99, 120, 221, 0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.ib-hero::before {
+  content: "";
+  position: absolute;
+  top: -60px;
+  right: -60px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(0, 188, 212, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.ib-hero__badge {
+  display: inline-block;
+  padding: 0.3rem 0.9rem;
+  background: rgba(0, 188, 212, 0.15);
+  border: 1px solid rgba(0, 188, 212, 0.35);
+  border-radius: 2rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #00bcd4;
+  margin-bottom: 1.5rem;
+}
+
+.ib-hero h1 {
+  font-size: 2.8rem !important;
+  font-weight: 800 !important;
+  line-height: 1.15 !important;
+  margin: 0.5rem 0 !important;
+  background: linear-gradient(135deg, #ffffff 0%, #90caf9 60%, #00bcd4 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ib-hero h2 {
+  font-size: 1.15rem !important;
+  font-weight: 400 !important;
+  color: rgba(255,255,255,0.65) !important;
+  margin: 0.25rem 0 1.75rem 0 !important;
+  border: none !important;
+}
+
+.ib-hero__buttons {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 2rem;
+}
+
+/* Responsive hero */
+@media screen and (max-width: 768px) {
+  .ib-hero h1 { font-size: 2rem !important; }
+  .ib-hero { padding: 2.5rem 1rem 2rem; }
+}
+
+
+/* ============================================================
+   HOME PAGE — STATS GRID
+   ============================================================ */
+
+.ib-stats .md-typeset .card,
+.ib-stats > ul > li {
+  text-align: center;
+}
+
+.ib-stat-icon {
+  font-size: 2rem !important;
+  color: #00bcd4 !important;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+
+/* ============================================================
+   HOME PAGE — PHASE CARDS (2×2 symmetrical grid)
+   ============================================================ */
+
+/* Outer grid: always exactly 2 columns */
+.ib-phase-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin: 1.5rem 0 2rem;
+  align-items: stretch; /* every row stretches cards to equal height */
+}
+
+/* Individual card */
+.ib-phase-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--md-code-bg-color);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ib-phase-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.35);
+}
+
+/* Coloured header strip */
+.ib-phase-card__header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+
+.ib-phase-card--1 .ib-phase-card__header { background: linear-gradient(135deg, #2e7d32, #43a047); }
+.ib-phase-card--2 .ib-phase-card__header { background: linear-gradient(135deg, #1565c0, #1e88e5); }
+.ib-phase-card--3 .ib-phase-card__header { background: linear-gradient(135deg, #6a1b9a, #8e24aa); }
+.ib-phase-card--4 .ib-phase-card__header { background: linear-gradient(135deg, #e65100, #f57c00); }
+
+.ib-phase-card__icon {
+  font-size: 1.8rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.ib-phase-card__title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #fff;
+  line-height: 1.3;
+}
+
+.ib-phase-card__months {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.15rem;
+}
+
+/* Card body — flex-grow pushes button to bottom */
+.ib-phase-card__desc {
+  padding: 1rem 1.25rem 0;
+  font-size: 0.875rem;
+  color: var(--md-default-fg-color);
+  line-height: 1.55;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.ib-phase-card__section-label {
+  padding: 0.75rem 1.25rem 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: rgba(255, 255, 255, 0.4);
+  flex-shrink: 0;
+}
+
+.ib-phase-card__skills,
+.ib-phase-card__labs {
+  list-style: none;
+  padding: 0 1.25rem;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.ib-phase-card__skills li,
+.ib-phase-card__labs li {
+  padding: 0.25rem 0;
+  font-size: 0.82rem;
+  color: var(--md-default-fg-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  line-height: 1.4;
+}
+
+.ib-phase-card__skills li::before {
+  content: "›  ";
+  color: rgba(255, 255, 255, 0.3);
+  font-weight: 700;
+}
+
+.ib-phase-card__skills li:last-child,
+.ib-phase-card__labs li:last-child {
+  border-bottom: none;
+}
+
+.ib-phase-card__skills code {
+  font-size: 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0.05em 0.35em;
+  border-radius: 0.2rem;
+}
+
+/* CTA button — pinned to bottom via margin-top: auto */
+.ib-phase-card__btn {
+  display: block;
+  margin: auto 1.25rem 1.25rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.35rem;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+  color: #fff !important;
+}
+
+.ib-phase-card__btn:hover { opacity: 0.85; text-decoration: none; }
+
+.ib-phase-card__btn--1 { background: #2e7d32; }
+.ib-phase-card__btn--2 { background: #1565c0; }
+.ib-phase-card__btn--3 { background: #6a1b9a; }
+.ib-phase-card__btn--4 { background: #e65100; }
+
+/* Responsive: single column on small screens */
+@media screen and (max-width: 768px) {
+  .ib-phase-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* ============================================================
+   HOME PAGE — PROJECT GRID
+   ============================================================ */
+
+.ib-project-grid > ul > li {
+  font-size: 0.88rem;
+}
+
+.ib-project-grid > ul > li code,
+.ib-project-grid code {
+  font-size: 0.74rem;
+  background: rgba(0, 188, 212, 0.1);
+  border: 1px solid rgba(0, 188, 212, 0.2);
+  color: #00bcd4;
+  padding: 0.1em 0.4em;
+  border-radius: 0.25rem;
+  margin: 0 0.1rem;
+}
+
+
+/* ============================================================
+   HOME PAGE — FOOTER CTA
+   ============================================================ */
+
+.ib-footer-cta {
+  text-align: center;
+  padding: 3rem 2rem;
+  margin-top: 1rem;
+  background: linear-gradient(
+    135deg,
+    rgba(63, 81, 181, 0.1) 0%,
+    rgba(0, 188, 212, 0.08) 100%
+  );
+  border-radius: 1rem;
+  border: 1px solid rgba(99, 120, 221, 0.2);
+}
+
+.ib-footer-cta strong {
+  display: block;
+  font-size: 1.4rem;
+  margin-bottom: 1.25rem;
+}
+
+.ib-footer-cta em {
+  display: block;
+  margin-top: 1.5rem;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-style: normal;
+}
+
+.ib-footer-cta .md-button {
+  margin: 0.25rem;
+}
+
+
+/* ============================================================
+   MERMAID DIAGRAMS — Size & Centering
+   ============================================================ */
+
+.md-typeset .mermaid {
+  text-align: center;
+  margin: 1.5rem auto;
+}
+
+/* Make timeline diagrams slightly wider */
+.md-typeset .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
