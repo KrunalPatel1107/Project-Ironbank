@@ -1,0 +1,378 @@
+# Kubernetes Network Policies for Zero Trust
+# ============================================
+# NetworkPolicies restrict traffic between pods
+# Default: DENY all traffic (implicit)
+# Then: ALLOW specific traffic (explicit whitelist)
+#
+# Usage:
+#   kubectl apply -f k8s-network-policies.yaml
+#   kubectl get networkpolicies -n myapp
+#   kubectl describe networkpolicy frontend-allow-backend -n myapp
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: myapp
+  labels:
+    name: myapp
+
+---
+# NetworkPolicy 1: Frontend pods
+# ============================
+# Allow:
+#   - Ingress from LoadBalancer on port 80/443
+#   - Egress to Backend pods on port 8080
+# Deny:
+#   - All other traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-policy
+  namespace: myapp
+spec:
+  # This policy applies to pods with label app=frontend
+  podSelector:
+    matchLabels:
+      app: frontend
+      tier: frontend
+
+  # Policy direction: both ingress and egress
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # Ingress rules: what traffic is ALLOWED INTO frontend pods
+  ingress:
+    # Rule 1: Allow traffic from LoadBalancer on port 80
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+          podSelector:
+            matchLabels:
+              app: nginx-ingress
+      ports:
+        - protocol: TCP
+          port: 80
+
+    # Rule 2: Allow traffic from LoadBalancer on port 443
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 443
+
+    # Rule 3: Allow from same namespace (frontend to frontend, for health checks)
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
+      ports:
+        - protocol: TCP
+          port: 80
+
+  # Egress rules: what traffic is ALLOWED OUT OF frontend pods
+  egress:
+    # Rule 1: Allow DNS (port 53) to kube-dns
+    - to:
+        - namespaceSelector: {}  # Any namespace
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+
+    # Rule 2: Allow frontend pods to call backend on port 8080
+    - to:
+        - podSelector:
+            matchLabels:
+              app: backend
+              tier: backend
+      ports:
+        - protocol: TCP
+          port: 8080
+
+    # Rule 3: Allow egress to external APIs (HTTPS only, port 443)
+    - to:
+        - namespaceSelector: {}  # Any external IP
+      ports:
+        - protocol: TCP
+          port: 443
+
+---
+# NetworkPolicy 2: Backend pods
+# ============================
+# Allow:
+#   - Ingress from Frontend pods on port 8080
+#   - Ingress from Database on port 5432
+#   - Egress to Database on port 5432
+# Deny:
+#   - All other traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: backend-policy
+  namespace: myapp
+spec:
+  podSelector:
+    matchLabels:
+      app: backend
+      tier: backend
+
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # Ingress: Allow from frontend pods only
+  ingress:
+    # Rule 1: Allow from frontend pods
+    - from:
+        - podSelector:
+            matchLabels:
+              app: frontend
+              tier: frontend
+      ports:
+        - protocol: TCP
+          port: 8080
+
+    # Rule 2: Allow from monitoring/observability (Prometheus, etc.)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+          podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - protocol: TCP
+          port: 8080  # Metrics endpoint
+
+  # Egress: Allow to database and DNS only
+  egress:
+    # Rule 1: Allow DNS
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+
+    # Rule 2: Allow to PostgreSQL database on port 5432
+    - to:
+        - podSelector:
+            matchLabels:
+              app: postgres
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Rule 3: Allow to Redis cache on port 6379
+    - to:
+        - podSelector:
+            matchLabels:
+              app: redis
+      ports:
+        - protocol: TCP
+          port: 6379
+
+---
+# NetworkPolicy 3: Database pods
+# ==============================
+# Allow:
+#   - Ingress from Backend pods on port 5432
+#   - Deny external access
+# Deny:
+#   - All other traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: database-policy
+  namespace: myapp
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+      tier: database
+
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # Ingress: Allow from backend pods only
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: backend
+              tier: backend
+      ports:
+        - protocol: TCP
+          port: 5432
+
+  # Egress: Minimal (DNS only, no external calls)
+  egress:
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+
+---
+# NetworkPolicy 4: Deny all traffic (baseline)
+# =============================================
+# This is the most restrictive policy
+# Applied first, then specific ALLOW rules override it
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: myapp
+spec:
+  # Apply to ALL pods in this namespace
+  podSelector: {}
+
+  policyTypes:
+    - Ingress
+    - Egress
+
+  # No ingress rules = deny all ingress
+  # No egress rules = deny all egress
+  # (Specific policies with ALLOW rules override this)
+
+---
+# NetworkPolicy 5: Allow Prometheus monitoring
+# =============================================
+# Allows Prometheus to scrape metrics from all pods
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-prometheus-scrape
+  namespace: myapp
+spec:
+  podSelector: {}  # Apply to all pods
+
+  policyTypes:
+    - Ingress
+
+  # Allow Prometheus to scrape metrics on port 9090
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+          podSelector:
+            matchLabels:
+              app: prometheus
+      ports:
+        - protocol: TCP
+          port: 9090  # Prometheus metrics endpoint
+
+---
+# NetworkPolicy 6: Egress to external APIs
+# ==========================================
+# Allows all pods to call external HTTPS APIs
+# Useful for:
+#   - Slack notifications
+#   - GitHub API calls
+#   - Third-party services
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-https
+  namespace: myapp
+spec:
+  podSelector: {}  # Apply to all pods
+
+  policyTypes:
+    - Egress
+
+  # Allow HTTPS to external IPs (not pods in cluster)
+  egress:
+    - to:
+        - namespaceSelector: {}  # Any namespace
+          # Note: Pod selectors don't match external IPs
+          # This effectively matches anything NOT in the cluster
+      ports:
+        - protocol: TCP
+          port: 443  # HTTPS
+
+---
+# How to test NetworkPolicies
+# ============================
+# 1. Get inside a pod:
+#    kubectl exec -it frontend-pod -- /bin/bash
+#
+# 2. Test allowed traffic:
+#    curl http://backend:8080/api/users
+#    # Should succeed (✓)
+#
+# 3. Test denied traffic:
+#    curl http://postgres:5432
+#    # Should timeout or fail (✗ Connection refused)
+#
+# 4. View network policies:
+#    kubectl get networkpolicies -n myapp
+#    kubectl describe networkpolicy frontend-policy -n myapp
+#
+# 5. View pod labels (used for selectors):
+#    kubectl get pods -n myapp --show-labels
+#    kubectl get pods -n myapp -L app,tier
+#
+# 6. Debug policy enforcement:
+#    # Check if Calico/Cilium is installed (CNI plugin)
+#    kubectl get daemonset -n kube-system | grep -i calico
+#    # If not found, NetworkPolicies won't be enforced!
+#
+#    # Check CNI plugin logs
+#    kubectl logs -n kube-system -l k8s-app=calico-node --tail=50
+
+---
+# Important Notes
+# ===============
+# 1. NetworkPolicies are only enforced if your CNI plugin supports them:
+#    - Calico (recommended)
+#    - Cilium
+#    - Weave
+#    - NOT supported by kubenet (basic CNI)
+#
+# 2. Default behavior: ALLOW all traffic
+#    To enforce DENY by default, apply "default-deny-all" policy first
+#
+# 3. Port numbers and protocols matter:
+#    - TCP port 80 is different from UDP port 80
+#    - If you need both, specify both
+#
+# 4. DNS is critical - almost all pods need egress to port 53 (UDP)
+#    Add DNS rules to all your policies
+#
+# 5. Namespace selectors: matchLabels applies to namespace labels, not pod labels
+#    Namespace must have label: kubectl label namespace myapp name=myapp
+#
+# 6. Multiple policies apply additively:
+#    If two policies match a pod, traffic is allowed if EITHER allows it
+#    (union of all policies)
+#
+# 7. Performance: NetworkPolicies add latency (~0.1-0.5ms per connection)
+#    For high-throughput systems, use network segmentation at the network layer
+
+---
+# Example: How to test connectivity
+# ==================================
+# Create a test pod in the namespace:
+# kubectl run test-pod --image=busybox -n myapp -- sleep 3600
+#
+# Test traffic:
+# kubectl exec -it test-pod -n myapp -- wget -O- http://frontend/
+# kubectl exec -it test-pod -n myapp -- wget -O- http://backend:8080/
+# kubectl exec -it test-pod -n myapp -- wget -O- http://postgres:5432
+#
+# If you see "Connection refused" or timeout, the policy is working (✓)
+# If you see "Connection succeeded", traffic is allowed (✓) or no policy enforced (✗)

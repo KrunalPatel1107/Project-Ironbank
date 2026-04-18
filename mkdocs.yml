@@ -1,0 +1,169 @@
+site_name: "Iron Bank Training"
+site_description: "12-Month Cloud Security & AppSec Mastery Plan"
+site_url: ""
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: indigo
+    accent: cyan
+  font:
+    text: DM Sans
+    code: JetBrains Mono
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.indexes
+    - search.highlight
+    - search.suggest
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+  icon:
+    logo: material/shield-lock
+    admonition:
+      tip: material/lightbulb-on
+      warning: material/alert
+      danger: material/fire
+      info: material/information
+      abstract: material/broom
+      note: material/pencil
+      example: material/test-tube
+      quote: material/format-quote-close
+
+nav:
+  - Home: index.md
+  - "Foundation":
+    - phase1/index.md
+    - "Linux CLI":
+      - "Environment Setup": phase1/linux-environment-setup.md
+      - "Filesystem & Navigation": phase1/linux-filesystem-navigation.md
+      - "grep, awk & Text Processing": phase1/linux-grep-awk-piping.md
+      - "Bash Scripting": phase1/bash-scripting.md
+      - "Git & GitHub": phase1/git-github.md
+    - "Python for Security":
+      - "Environment Setup": phase1/python-environment-setup.md
+      - "Python Fundamentals": phase1/python-fundamentals.md
+      - "Files, APIs & Libraries": phase1/python-files-apis-libraries.md
+      - "boto3 — AWS SDK for Python": phase1/python-boto3-aws-sdk.md
+      - "Project: AWS Security Scanner": phase1/aws-security-scanner-project.md
+      - "Cryptography Fundamentals": phase1/cryptography-fundamentals.md
+    - "AWS Core & IAM":
+      - "AWS Account Setup": phase1/aws-account-setup.md
+      - "IAM Deep Dive": phase1/aws-iam-deep-dive.md
+      - "S3 & KMS": phase1/aws-s3-kms.md
+      - "AWS CCP Exam Prep": phase1/aws-ccp-exam-prep.md
+      - "CCP Exam & Cleanup": phase1/aws-ccp-exam-cleanup.md
+  - "Cloud Security":
+    - phase2/index.md
+    - "AWS Networking":
+      - "Lab: Threat Modeling Bootcamp": phase2/threat-modeling-bootcamp.md
+      - "VPC & CloudTrail": phase2/vpc-cloudtrail.md
+      - "Subnets & Routing": phase2/subnets-routing.md
+      - "Security Groups & Bastion Host": phase2/security-groups-bastion-host.md
+      - "Project: VPC Flow Logs Analyzer": phase2/vpc-flow-logs-project.md
+    - "Infrastructure as Code (Terraform)":
+      - "Terraform Setup": phase2/terraform-setup.md
+      - "First Terraform Deployment": phase2/terraform-first-deployment.md
+      - "Iron Bank Architecture in Terraform": phase2/terraform-iron-bank-architecture.md
+      - "Terraform Modules & Security Scanning": phase2/terraform-modules-scanning.md
+      - "Database Security (RDS & DynamoDB)": phase2/database-security.md
+      - "IaC at Scale (Monorepo, Terratest, OPA, Drift)": phase2/terraform-iac-at-scale.md
+    - "AWS Detection & Governance":
+      - "GuardDuty & CloudWatch Alarms": phase2/guardduty-cloudwatch-alarms.md
+      - "AWS Config & Security Hub": phase2/aws-config-security-hub.md
+      - "Zero Trust & SCPs": phase2/zero-trust-scps.md
+      - "Terraform Associate Exam": phase2/terraform-associate-exam.md
+  - "Application Security":
+    - phase3/index.md
+    - "OWASP & Web Security":
+      - "Docker Setup": phase3/docker-setup.md
+      - "OWASP Top 10 — Theory": phase3/owasp-top10-theory.md
+      - "Lab: OWASP Exploitation": phase3/owasp-exploitation-labs.md
+      - "API Security (OWASP API Top 10)": phase3/api-security-owasp-api-top10.md
+      - "Secure SDLC": phase3/secure-sdlc.md
+      - "AWS Solutions Architect Exam (SAA-C03)": phase3/aws-saa-exam-prep.md
+    - "Security Testing Tools":
+      - "Semgrep (SAST)": phase3/semgrep-sast.md
+      - "OWASP ZAP (DAST)": phase3/owasp-zap-dast.md
+      - "Trivy & Gitleaks (SCA)": phase3/trivy-gitleaks-sca.md
+      - "Project: Security Testing Toolkit": phase3/security-testing-toolkit-project.md
+      - "Supply Chain Security (SBOM, Signing, Vendor Risk)": phase3/supply-chain-security.md
+      - "Web Application Firewalls & DDoS Protection": phase3/waf-ddos-protection.md
+    - "Container Security":
+      - "Docker Security": phase3/docker-security.md
+      - "Amazon ECR & ECS Fargate": phase3/ecr-ecs-fargate.md
+      - "Kubernetes Security": phase3/kubernetes-security.md
+      - "AWS Security Specialty Exam (SCS-C03)": phase3/aws-security-specialty-exam.md
+  - "DevSecOps":
+    - phase4/index.md
+    - "CI/CD Security Pipelines":
+      - "GitHub Actions & Secrets Management": phase4/github-actions-secrets-management.md
+      - "Security Gates: SAST, Secrets & IaC Scanning": phase4/security-gates-sast-secrets-iac.md
+      - "Security Gates: Container & Runtime (Falco, Pod Security)": phase4/security-gates-container-runtime.md
+      - "Project: DevSecOps Pipeline": phase4/devsecops-pipeline-project.md
+      - "Enterprise Secrets Management (Vault, Rotation, Detection)": phase4/enterprise-secrets-management.md
+      - "GitOps & Advanced CI/CD Orchestration (ArgoCD, Blue-Green)": phase4/gitops-advanced-cicd.md
+      - "Container Image Hardening & Supply Chain Integrity": phase4/container-image-hardening.md
+      - "Shift Left: Pre-Commit Hooks & IDE Security Plugins": phase4/shift-left-precommit-ide.md
+    - "Governance & Compliance":
+      - "Compliance as Code (PCI-DSS, HIPAA, SOC 2, ISO 27001)": phase4/compliance-as-code-frameworks.md
+      - "AWS Governance & Zero Trust Enforcement": phase4/aws-governance-zero-trust.md
+      - "Policy as Code (OPA, Sentinel, SCPs)": phase4/policy-as-code-opa-sentinel.md
+      - "Continuous Compliance Automation (CloudTrail, Config, Lambda)": phase4/compliance-automation-cloudtrail-config.md
+      - "Observability, Monitoring & Alerting (CloudWatch, SIEM, ML)": phase4/observability-monitoring-siem.md
+      - "CDP Exam Prep (Certified DevSecOps Professional)": phase4/cdp-exam-prep.md
+      - "CDP Exam & CCSP Study Start": phase4/cdp-exam-ccsp-start.md
+    - "Capstone Project":
+      - "Infrastructure Deployment (Terraform)": phase4/capstone-infrastructure-deploy.md
+      - "DevSecOps Pipeline & Scanning Integration": phase4/capstone-pipeline-scanning.md
+      - "Incident Response Simulation": phase4/incident-response-simulation.md
+      - "Incident Response at Scale & Post-Mortems": phase4/incident-response-at-scale.md
+      - "Portfolio Documentation & CCSP Exam": phase4/portfolio-documentation-ccsp.md
+  - "Q&A Archive": qa/index.md
+  - Resources: resources.md
+
+markdown_extensions:
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.mark
+  - attr_list
+  - md_in_html
+  - tables
+  - def_list
+  - footnotes
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - tags
+
+extra:
+  social: []
+  generator: false
+
+extra_css:
+  - assets/custom.css

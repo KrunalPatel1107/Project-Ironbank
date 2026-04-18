@@ -1,0 +1,434 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "Zero Trust Service Control Policy Templates for AWS Organizations",
+    "author": "Iron Bank Training",
+    "created": "2026-04-15",
+    "notes": "These SCPs implement deny-by-default principles for Zero Trust architecture. Each SCP enforces specific security controls at the organization level."
+  },
+
+  "scp_templates": [
+    {
+      "name": "MFA-Required-For-Sensitive-IAM-Actions",
+      "description": "Requires MFA for high-risk IAM operations (user/role creation, access key management, policy changes)",
+      "threat_model": "Prevent unauthorized user provisioning or credential creation by compromised console sessions",
+      "cost_impact": "$0 (SCPs are free)",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DenyIAMActionsWithoutMFA",
+            "Effect": "Deny",
+            "Action": [
+              "iam:CreateUser",
+              "iam:DeleteUser",
+              "iam:UpdateUser",
+              "iam:CreateAccessKey",
+              "iam:DeleteAccessKey",
+              "iam:UpdateAccessKey",
+              "iam:AttachUserPolicy",
+              "iam:DetachUserPolicy",
+              "iam:PutUserPolicy",
+              "iam:DeleteUserPolicy",
+              "iam:CreateRole",
+              "iam:DeleteRole",
+              "iam:UpdateRole",
+              "iam:AttachRolePolicy",
+              "iam:DetachRolePolicy",
+              "iam:PutRolePolicy",
+              "iam:DeleteRolePolicy",
+              "iam:UpdateAssumeRolePolicy",
+              "iam:AddUserToGroup",
+              "iam:RemoveUserFromGroup",
+              "iam:CreateGroup",
+              "iam:DeleteGroup",
+              "iam:PutGroupPolicy"
+            ],
+            "Resource": "*",
+            "Condition": {
+              "BoolIfExists": {
+                "aws:MultiFactorAuthPresent": "false"
+              }
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "Protect-Security-Services",
+      "description": "Prevents disabling of CloudTrail, Config, GuardDuty, Security Hub, Macie, or detective",
+      "threat_model": "Prevent attackers from disabling logging/monitoring after breaching account",
+      "cost_impact": "$0 (SCPs are free)",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "ProtectSecurityServices",
+            "Effect": "Deny",
+            "Action": [
+              "guardduty:DeleteDetector",
+              "guardduty:DisassociateFromMasterAccount",
+              "guardduty:DisassociateMembers",
+              "guardduty:StopMonitoringMembers",
+              "config:DeleteConfigRule",
+              "config:DeleteConfigurationRecorder",
+              "config:DeleteDeliveryChannel",
+              "config:StopConfigurationRecorder",
+              "cloudtrail:DeleteTrail",
+              "cloudtrail:StopLogging",
+              "securityhub:DeleteHub",
+              "securityhub:DisableSecurityHub",
+              "macie:Disable",
+              "macie:DisableOrganizationAdminAccount",
+              "detective:DeleteGraph",
+              "detective:DisassociateMembership"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "Enforce-Encryption-At-Rest",
+      "description": "Requires encryption on S3, EBS, RDS, DynamoDB, and ElastiCache",
+      "threat_model": "Prevent unencrypted storage of sensitive data at rest",
+      "cost_impact": "$0 (SCPs are free, but KMS usage incurs $0.03 per 10k key requests)",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DenyUnencryptedS3Uploads",
+            "Effect": "Deny",
+            "Action": "s3:PutObject",
+            "Resource": "*",
+            "Condition": {
+              "StringNotEquals": {
+                "s3:x-amz-server-side-encryption": "aws:kms"
+              }
+            }
+          },
+          {
+            "Sid": "DenyUnencryptedEBS",
+            "Effect": "Deny",
+            "Action": "ec2:RunInstances",
+            "Resource": "arn:aws:ec2:*:*:volume/*",
+            "Condition": {
+              "Bool": {
+                "ec2:Encrypted": "false"
+              }
+            }
+          },
+          {
+            "Sid": "DenyUnencryptedRDS",
+            "Effect": "Deny",
+            "Action": [
+              "rds:CreateDBInstance",
+              "rds:ModifyDBInstance"
+            ],
+            "Resource": "*",
+            "Condition": {
+              "Bool": {
+                "rds:StorageEncrypted": "false"
+              }
+            }
+          },
+          {
+            "Sid": "DenyUnencryptedDynamoDB",
+            "Effect": "Deny",
+            "Action": "dynamodb:CreateTable",
+            "Resource": "*",
+            "Condition": {
+              "Bool": {
+                "dynamodb:ServerSideEncryption": "false"
+              }
+            }
+          },
+          {
+            "Sid": "DenyUnencryptedElastiCache",
+            "Effect": "Deny",
+            "Action": "elasticache:CreateCacheCluster",
+            "Resource": "*",
+            "Condition": {
+              "Bool": {
+                "elasticache:AuthTokenEnabled": "false"
+              }
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "Enforce-Network-Isolation",
+      "description": "Prevents public access to S3, RDS, ElastiCache, Redshift, Lambda",
+      "threat_model": "Prevent accidental exposure of internal resources to the internet",
+      "cost_impact": "$0 (SCPs are free)",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DenyPublicS3Buckets",
+            "Effect": "Deny",
+            "Action": [
+              "s3:PutAccountPublicAccessBlock",
+              "s3:PutBucketPublicAccessBlock"
+            ],
+            "Resource": "*",
+            "Condition": {
+              "Bool": {
+                "s3:BlockPublicAcls": "false",
+                "s3:BlockPublicPolicy": "false"
+              }
+            }
+          },
+          {
+            "Sid": "DenyPublicRDS",
+            "Effect": "Deny",
+            "Action": [
+              "rds:CreateDBInstance",
+              "rds:ModifyDBInstance"
+            ],
+            "Resource": "*",
+            "Condition": {
+              "Bool": {
+                "rds:PubliclyAccessible": "true"
+              }
+            }
+          },
+          {
+            "Sid": "DenyPublicRedshift",
+            "Effect": "Deny",
+            "Action": [
+              "redshift:CreateCluster",
+              "redshift:ModifyCluster"
+            ],
+            "Resource": "*",
+            "Condition": {
+              "Bool": {
+                "redshift:PubliclyAccessible": "true"
+              }
+            }
+          },
+          {
+            "Sid": "DenyPublicLambda",
+            "Effect": "Deny",
+            "Action": "lambda:AddPermission",
+            "Resource": "*",
+            "Condition": {
+              "StringEquals": {
+                "lambda:Principal": "*"
+              }
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "Enforce-Encryption-In-Transit",
+      "description": "Requires TLS/HTTPS for all data transfers",
+      "threat_model": "Prevent man-in-the-middle attacks on data in transit",
+      "cost_impact": "$0 (SCPs are free)",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DenyNonHTTPSAPICalls",
+            "Effect": "Deny",
+            "Action": "*",
+            "Resource": "*",
+            "Condition": {
+              "Bool": {
+                "aws:SecureTransport": "false"
+              }
+            }
+          },
+          {
+            "Sid": "DenyNonHTTPSS3",
+            "Effect": "Deny",
+            "Action": "s3:*",
+            "Resource": "*",
+            "Condition": {
+              "Bool": {
+                "aws:SecureTransport": "false"
+              }
+            }
+          },
+          {
+            "Sid": "DenyUnencryptedRDSTransit",
+            "Effect": "Deny",
+            "Action": [
+              "rds:ModifyDBInstance",
+              "rds:CreateDBInstance"
+            ],
+            "Resource": "*",
+            "Condition": {
+              "Bool": {
+                "rds:IAMAuthEnabled": "false"
+              }
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "Restrict-Regional-Operations",
+      "description": "Limits resource creation to approved regions only (reduce blast radius)",
+      "threat_model": "Prevent attacker from spinning up expensive resources in unexpected regions",
+      "cost_impact": "$0 (SCPs are free)",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DenyUnapprovedRegions",
+            "Effect": "Deny",
+            "Action": "*",
+            "Resource": "*",
+            "Condition": {
+              "StringNotEquals": {
+                "aws:RequestedRegion": [
+                  "us-east-1",
+                  "us-west-2"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "Deny-Root-Account-Actions",
+      "description": "Prevents root account console login and API usage (except for account recovery)",
+      "threat_model": "Prevent root account compromise from becoming catastrophic",
+      "cost_impact": "$0 (SCPs are free)",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DenyRootAccountActions",
+            "Effect": "Deny",
+            "Action": "*",
+            "Resource": "*",
+            "Principal": {
+              "AWS": "arn:aws:iam::ACCOUNT_ID:root"
+            },
+            "Condition": {
+              "StringNotEquals": {
+                "aws:username": "root"
+              }
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "Enforce-MFA-For-Console-Login",
+      "description": "Requires MFA for all AWS console logins",
+      "threat_model": "Prevent unauthorized console access via password compromise",
+      "cost_impact": "$0 (SCPs are free)",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DenyConsoleAccessWithoutMFA",
+            "Effect": "Deny",
+            "Action": [
+              "iam:GetUser",
+              "sts:GetCallerIdentity"
+            ],
+            "Resource": "*",
+            "Condition": {
+              "BoolIfExists": {
+                "aws:MultiFactorAuthPresent": "false"
+              }
+            }
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "Deny-Removal-Of-Security-Logging",
+      "description": "Prevents deletion or modification of CloudTrail, CloudWatch Logs, S3 access logs",
+      "threat_model": "Prevent attackers from covering tracks by deleting logs",
+      "cost_impact": "$0 (SCPs are free)",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "ProtectCloudTrailLogs",
+            "Effect": "Deny",
+            "Action": [
+              "s3:DeleteObject",
+              "s3:PutLifecycleConfiguration",
+              "s3:PutVersioningConfiguration"
+            ],
+            "Resource": "arn:aws:s3:::*cloudtrail*",
+            "Condition": {
+              "StringLike": {
+                "aws:PrincipalArn": "arn:aws:iam::*"
+              }
+            }
+          },
+          {
+            "Sid": "ProtectCloudWatchLogs",
+            "Effect": "Deny",
+            "Action": [
+              "logs:DeleteLogGroup",
+              "logs:DeleteLogStream",
+              "logs:PutRetentionPolicy"
+            ],
+            "Resource": "*"
+          }
+        ]
+      }
+    },
+
+    {
+      "name": "Enforce-IMDSv2-Only",
+      "description": "Requires IMDSv2 (token-based) instead of IMDSv1 (network-based)",
+      "threat_model": "Prevent SSRF attacks that leverage IMDSv1 to steal IAM credentials",
+      "cost_impact": "$0 (SCPs are free)",
+      "policy": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Sid": "DenyIMDSv1",
+            "Effect": "Deny",
+            "Action": "ec2:RunInstances",
+            "Resource": "arn:aws:ec2:*:*:instance/*",
+            "Condition": {
+              "StringNotEquals": {
+                "ec2:MetadataHttpTokens": "required"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+
+  "deployment_guide": {
+    "step_1_create_scp": "aws organizations create-policy --name <policy-name> --description '...' --content file://policy.json --type SERVICE_CONTROL_POLICY",
+    "step_2_attach_to_ou": "aws organizations attach-policy --policy-id <policy-id> --target-id <ou-id>",
+    "step_3_verify": "aws organizations list-policies-for-target --target-id <ou-id> --filter SERVICE_CONTROL_POLICY",
+    "step_4_test_with_simulator": "aws iam simulate-principal-policy --policy-source-arn arn:aws:iam::ACCOUNT_ID:user/test-user --action-names s3:PutObject --resource-arns '*'",
+    "notes": "SCPs are inherited from parent OUs. Test on a dev OU first before applying to prod. Remember: SCPs only DENY — they don't ALLOW. You still need IAM policies to grant access."
+  },
+
+  "best_practices": [
+    "Always test SCPs in a dev/staging OU before deploying to prod",
+    "Use the IAM Policy Simulator to verify SCP behavior before committing",
+    "SCPs should be versioned in git alongside your Terraform/CloudFormation code",
+    "Document the threat model each SCP addresses (in the 'threat_model' field above)",
+    "Pair SCPs with Config rules for detection: SCP blocks, Config detects and logs attempts",
+    "Never use SCPs as a substitute for IAM policies — use both together",
+    "Review SCP exceptions quarterly — eliminate legacy allow-alls",
+    "Integrate SCP changes into your CloudTrail audit trail for governance evidence"
+  ]
+}

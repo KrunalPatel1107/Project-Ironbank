@@ -1,0 +1,165 @@
+# ════════════════════════════════════════════════════════════════════════════
+# GitHub Actions Workflow: Deploy with OIDC (No Long-Lived Credentials)
+# ════════════════════════════════════════════════════════════════════════════
+#
+# Purpose:
+#   Demonstrates OIDC token exchange for AWS credentials.
+#   GitHub provides an OIDC token (valid 1 hour, scoped to this repo/workflow).
+#   The token is exchanged for AWS temporary credentials (STS token).
+#   Result: No long-lived keys in GitHub, automatic audit trail in CloudTrail.
+#
+# Security Benefits:
+#   ✓ No hardcoded AWS credentials in GitHub
+#   ✓ Temporary credentials auto-expire (no manual cleanup needed)
+#   ✓ CloudTrail logs which GitHub repo, branch, commit accessed AWS
+#   ✓ Each job run gets a fresh token (can't be reused if leaked)
+#   ✓ Meets PCI-DSS, HIPAA, SOC 2 compliance for credential handling
+#
+# How OIDC Works:
+#   1. GitHub workflow runs (detected by trigger: push, PR, schedule, etc.)
+#   2. GitHub generates OIDC token (signed JWT, includes repo/branch/commit info)
+#   3. GitHub provides token to the runner
+#   4. Runner exchanges token with AWS STS (calls AssumeRoleWithWebIdentity)
+#   5. AWS returns temporary credentials (AccessKeyId, SecretAccessKey, SessionToken)
+#   6. Credentials expire after 1 hour (or job completion)
+#
+# Prerequisites:
+#   - Run: ./scripts/setup-github-oidc.sh USERNAME REPO us-east-1
+#   - Update ROLE_TO_ASSUME below with the output
+#
+# Author: Iron Bank Training
+# Date: April 2026
+# ════════════════════════════════════════════════════════════════════════════
+
+name: Deploy with OIDC
+
+# TRIGGER: When does this workflow run?
+on:
+  # Push to main branch
+  push:
+    branches: [main]
+
+  # Manual trigger (adds a "Run workflow" button in GitHub UI)
+  workflow_dispatch:
+
+# PERMISSIONS: What permissions does this workflow need?
+# id-token:write = allow GitHub to generate OIDC token for AWS
+# contents:read  = allow reading the repository code
+permissions:
+  id-token: write  # ← CRITICAL: enables OIDC token generation
+  contents: read
+
+# JOBS: Define the work to do
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ─────────────────────────────────────────────────────────────────────
+      # STEP 1: Check out the repository code
+      # ─────────────────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # ─────────────────────────────────────────────────────────────────────
+      # STEP 2: Exchange GitHub OIDC token for AWS temporary credentials
+      # ─────────────────────────────────────────────────────────────────────
+      # This is the magic step: GitHub provides an OIDC token, we exchange it
+      # for AWS credentials using the role created by setup-github-oidc.sh
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          # ↓ REPLACE with your actual role ARN from setup-github-oidc.sh output
+          role-to-assume: arn:aws:iam::123456789012:role/github-iron-bank-pipeline-deploy
+          aws-region: us-east-1
+          # Optional: session name (shows up in CloudTrail)
+          role-session-name: github-actions-${{ github.run_id }}
+
+      # ─────────────────────────────────────────────────────────────────────
+      # STEP 3: Verify AWS credentials are working
+      # ─────────────────────────────────────────────────────────────────────
+      # If this step succeeds, OIDC worked! You're authenticated as the role.
+      - name: Verify AWS credentials
+        run: |
+          echo "=========================================="
+          echo "AWS Credentials Verified"
+          echo "=========================================="
+
+          # Show which role we're assuming (proof that OIDC worked)
+          aws sts get-caller-identity
+
+          echo ""
+          echo "Current AWS Account: $(aws sts get-caller-identity --query Account --output text)"
+          echo "Current IAM Role:    $(aws sts get-caller-identity --query Arn --output text)"
+          echo "Session Token TTL:   1 hour (expires automatically)"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # STEP 4: Example AWS operation (retrieve EC2 instances)
+      # ─────────────────────────────────────────────────────────────────────
+      # Now that we have credentials, we can make AWS API calls
+      - name: List EC2 instances
+        run: |
+          echo "Querying EC2 instances..."
+
+          # AWS credentials are automatically available:
+          # AWS_ACCESS_KEY_ID (from STS AssumeRoleWithWebIdentity)
+          # AWS_SECRET_ACCESS_KEY
+          # AWS_SESSION_TOKEN
+
+          aws ec2 describe-instances \
+            --region us-east-1 \
+            --output table \
+            --max-results 5 || echo "No instances found (expected for lab)"
+
+      # ─────────────────────────────────────────────────────────────────────
+      # STEP 5: Example Terraform deployment (if you have a Terraform repo)
+      # ─────────────────────────────────────────────────────────────────────
+      # Uncomment if you want to deploy infrastructure with Terraform
+      # (Terraform automatically uses AWS_* env variables)
+      # - name: Deploy with Terraform
+      #   run: |
+      #     cd terraform/
+      #     terraform init
+      #     terraform plan
+      #     terraform apply -auto-approve
+
+      # ─────────────────────────────────────────────────────────────────────
+      # STEP 6: Cleanup (automated, credentials expire in 1 hour anyway)
+      # ─────────────────────────────────────────────────────────────────────
+      # When the workflow completes, AWS credentials automatically expire.
+      # This is different from long-lived keys — no manual cleanup needed!
+
+# ════════════════════════════════════════════════════════════════════════════
+# TROUBLESHOOTING
+# ════════════════════════════════════════════════════════════════════════════
+#
+# Problem: "Workflow fails at 'Configure AWS credentials' step"
+# Solution:
+#   1. Check that role ARN is correct (copy from setup-github-oidc.sh output)
+#   2. Check that role exists: aws iam get-role --role-name github-iron-bank-pipeline-deploy
+#   3. Check that OIDC provider exists: aws iam list-open-id-connect-providers
+#   4. Verify permissions: did you attach a policy to the role?
+#
+# Problem: "AssumeRole permission denied"
+# Solution:
+#   The GitHub OIDC token was rejected by AWS. Check:
+#   1. Is the trust policy correct? (run setup-github-oidc.sh again)
+#   2. Does the condition match: repo:USERNAME/REPO:*
+#   3. Are you pushing from the correct repo/branch?
+#
+# Problem: "AWS API call fails (e.g., permission denied on EC2 DescribeInstances)"
+# Solution:
+#   OIDC worked (you're authenticated), but the role doesn't have permission.
+#   Check the policy attached to the role:
+#     aws iam list-attached-role-policies --role-name github-iron-bank-pipeline-deploy
+#   If needed, attach more permissions:
+#     aws iam attach-role-policy \
+#       --role-name github-iron-bank-pipeline-deploy \
+#       --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
+#
+# ════════════════════════════════════════════════════════════════════════════
+# FOR MORE INFORMATION
+# ════════════════════════════════════════════════════════════════════════════
+# See: Month 10, Week 1 — Secrets Management + GitHub Actions Basics
+#      Section: Approach 3: OIDC Token Exchange (BEST PRACTICE)
+# ════════════════════════════════════════════════════════════════════════════

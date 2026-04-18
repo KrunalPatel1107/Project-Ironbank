@@ -1,0 +1,171 @@
+# ════════════════════════════════════════════════════════════════════════════
+# AWS Config Rules for PCI-DSS Compliance
+# ════════════════════════════════════════════════════════════════════════════
+#
+# Purpose:
+#   These Config rules enforce PCI-DSS requirements automatically.
+#   When a resource violates a rule, Config marks it as NON_COMPLIANT.
+#   You can set automatic remediation (Lambda) to fix violations.
+#
+# PCI-DSS Requirements Covered:
+#   1.2.3 - Network isolation
+#   2.1 - Default passwords changed
+#   2.2 - Configuration standards
+#   2.4 - Firewall rules documented
+#   3.4 - Encryption of cardholder data
+#   4.1 - Encryption in transit
+#   8.1.3 - Multi-factor authentication
+#
+# Deploy:
+#   aws configservice put-config-rule --cli-input-json file://pci-dss-config-rules.yaml
+#
+# Check Compliance:
+#   aws configservice describe-compliance-by-config-rule --query 'ComplianceByConfigRules'
+#
+# Author: Iron Bank Training
+# ════════════════════════════════════════════════════════════════════════════
+
+---
+# ────────────────────────────────────────────────────────────────────────────
+# Rule 1: IAM MFA Enforcement
+# ────────────────────────────────────────────────────────────────────────────
+# Requirement: PCI-DSS 8.3 (Multi-factor authentication for console access)
+# Compliance: Check if all console users have MFA enabled
+# ────────────────────────────────────────────────────────────────────────────
+
+ConfigRuleName: "pci-dss-iam-mfa-enabled"
+Description: "Checks whether AWS IAM users have MFA enabled (PCI-DSS 8.3)"
+Source:
+  Owner: AWS
+  SourceIdentifier: "IAM_USER_MFA_ENABLED"
+Scope:
+  ComplianceResourceTypes:
+    - "AWS::IAM::User"
+
+---
+# ────────────────────────────────────────────────────────────────────────────
+# Rule 2: S3 Encryption
+# ────────────────────────────────────────────────────────────────────────────
+# Requirement: PCI-DSS 3.4 (Encryption of data at rest)
+# Compliance: Check if S3 buckets have default encryption enabled
+# ────────────────────────────────────────────────────────────────────────────
+
+ConfigRuleName: "pci-dss-s3-encryption-enabled"
+Description: "Checks whether S3 buckets have encryption enabled (PCI-DSS 3.4)"
+Source:
+  Owner: AWS
+  SourceIdentifier: "S3_BUCKET_SERVER_SIDE_ENCRYPTION_ENABLED"
+Scope:
+  ComplianceResourceTypes:
+    - "AWS::S3::Bucket"
+
+---
+# ────────────────────────────────────────────────────────────────────────────
+# Rule 3: RDS Encryption
+# ────────────────────────────────────────────────────────────────────────────
+# Requirement: PCI-DSS 3.4 (Encryption of data at rest)
+# Compliance: Check if RDS instances have encryption enabled
+# ────────────────────────────────────────────────────────────────────────────
+
+ConfigRuleName: "pci-dss-rds-encryption-enabled"
+Description: "Checks whether RDS instances have encryption enabled (PCI-DSS 3.4)"
+Source:
+  Owner: AWS
+  SourceIdentifier: "RDS_STORAGE_ENCRYPTED"
+Scope:
+  ComplianceResourceTypes:
+    - "AWS::RDS::DBInstance"
+
+---
+# ────────────────────────────────────────────────────────────────────────────
+# Rule 4: CloudTrail Logging
+# ────────────────────────────────────────────────────────────────────────────
+# Requirement: PCI-DSS 10.2 (Complete logging of user actions)
+# Compliance: Check if CloudTrail is enabled globally
+# ────────────────────────────────────────────────────────────────────────────
+
+ConfigRuleName: "pci-dss-cloudtrail-enabled"
+Description: "Checks whether CloudTrail is enabled (PCI-DSS 10.2)"
+Source:
+  Owner: AWS
+  SourceIdentifier: "CLOUD_TRAIL_ENABLED"
+Scope:
+  ComplianceResourceTypes:
+    - "AWS::CloudTrail::Trail"
+
+---
+# ────────────────────────────────────────────────────────────────────────────
+# Rule 5: S3 Public Access Block
+# ────────────────────────────────────────────────────────────────────────────
+# Requirement: PCI-DSS 1.2.1 (Restrict unauthorized access)
+# Compliance: Check if S3 buckets block public access
+# ────────────────────────────────────────────────────────────────────────────
+
+ConfigRuleName: "pci-dss-s3-public-access-blocked"
+Description: "Checks whether S3 bucket public access is blocked (PCI-DSS 1.2.1)"
+Source:
+  Owner: AWS
+  SourceIdentifier: "S3_BUCKET_PUBLIC_READ_PROHIBITED"
+Scope:
+  ComplianceResourceTypes:
+    - "AWS::S3::Bucket"
+
+---
+# ────────────────────────────────────────────────────────────────────────────
+# Rule 6: VPC Flow Logs
+# ────────────────────────────────────────────────────────────────────────────
+# Requirement: PCI-DSS 10.3 (Protection and review of access logs)
+# Compliance: Check if VPC Flow Logs are enabled
+# ────────────────────────────────────────────────────────────────────────────
+
+ConfigRuleName: "pci-dss-vpc-flow-logs-enabled"
+Description: "Checks whether VPC Flow Logs are enabled (PCI-DSS 10.3)"
+Source:
+  Owner: AWS
+  SourceIdentifier: "VPC_FLOW_LOGS_ENABLED"
+Scope:
+  ComplianceResourceTypes:
+    - "AWS::EC2::FlowLog"
+
+---
+# ────────────────────────────────────────────────────────────────────────────
+# Rule 7: Security Group Restriction
+# ────────────────────────────────────────────────────────────────────────────
+# Requirement: PCI-DSS 1.3.2 (Prohibit unrestricted ingress)
+# Compliance: Check if security groups allow unrestricted SSH/RDP
+# ────────────────────────────────────────────────────────────────────────────
+
+ConfigRuleName: "pci-dss-sg-no-unrestricted-ssh"
+Description: "Checks whether security groups allow unrestricted SSH (PCI-DSS 1.3.2)"
+Source:
+  Owner: AWS
+  SourceIdentifier: "RESTRICTED_INCOMING_TRAFFIC"
+InputParameters:
+  blockedPort1: "22"  # SSH
+
+---
+# ════════════════════════════════════════════════════════════════════════════
+# HOW TO USE THIS FILE:
+# ════════════════════════════════════════════════════════════════════════════
+#
+# 1. Deploy individual rules:
+#    aws configservice put-config-rule \
+#      --config-rule file://rule.json
+#
+# 2. Check compliance status:
+#    aws configservice describe-compliance-by-config-rule \
+#      --query 'ComplianceByConfigRules[*].[ConfigRuleName,Compliance.ComplianceType]'
+#
+# 3. Get non-compliant resources:
+#    aws configservice get-compliance-details-by-config-rule \
+#      --config-rule-name "pci-dss-s3-encryption-enabled" \
+#      --compliance-types NON_COMPLIANT
+#
+# 4. Automatic remediation:
+#    Use AWS Systems Manager Automation to fix non-compliant resources
+#    Example: Auto-enable S3 encryption if bucket doesn't have it
+#
+# 5. View in AWS Console:
+#    AWS Config → Rules → Shows compliance dashboard
+#
+# ════════════════════════════════════════════════════════════════════════════

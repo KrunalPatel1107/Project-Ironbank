@@ -1,0 +1,10 @@
+site/
+.cache/
+__pycache__/
+*.pyc
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+venv/
+node_modules/
